@@ -1,12 +1,19 @@
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static('public'));
+// Servește fișierele direct din rădăcină (fără să mai depindă de folderul public)
+app.use(express.static(__dirname));
+
+// Încarcă direct index.html la accesarea site-ului
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 const rooms = {};
 
