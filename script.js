@@ -4,10 +4,10 @@ const BOARD_SIZE = 10;
 let playerName = '';
 let currentRoom = '';
 let myBoard = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
-let myPlanesList = []; // Array cu obiectele avioanelor salvate: { head: [r,c], cells: [[r,c],...] }
+let myPlanesList = [];
 let planesPlaced = 0;
 const MAX_PLANES = 3;
-let currentDirection = 0; // 0: SUS, 1: DREAPTA, 2: JOS, 3: STÂNGA
+let currentDirection = 0;
 const directions = ['SUS', 'DREAPTA', 'JOS', 'STÂNGA'];
 let isMyTurn = false;
 let currentHoveredCell = null;
@@ -17,6 +17,16 @@ window.addEventListener('DOMContentLoaded', () => {
   const roomFromUrl = urlParams.get('room');
   if (roomFromUrl) {
     document.getElementById('roomIdInput').value = roomFromUrl;
+  }
+});
+
+// Asculta tasta R pentru rotirea avionului in faza de plasare
+window.addEventListener('keydown', (e) => {
+  if ((e.key === 'r' || e.key === 'R') && planesPlaced < MAX_PLANES) {
+    // Ne asiguram ca nu scrie intr-un input
+    if (document.activeElement.tagName !== 'INPUT') {
+      rotatePlane();
+    }
   }
 });
 
@@ -83,7 +93,6 @@ function createGrids() {
 
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
-      // Grila ta
       const cell = document.createElement('div');
       cell.classList.add('cell');
       cell.dataset.r = r;
@@ -93,7 +102,6 @@ function createGrids() {
       cell.onmouseleave = () => clearPreview();
       myBoardEl.appendChild(cell);
 
-      // Grila inamicului
       const eCell = document.createElement('div');
       eCell.classList.add('cell');
       eCell.dataset.r = r;
@@ -129,7 +137,6 @@ function showPreview(headR, headC) {
   const parts = planeTemplates[currentDirection];
   let isValid = true;
 
-  // Verificăm dacă toate celulele sunt în interior și libere
   for (let [dr, dc] of parts) {
     let nr = headR + dr, nc = headC + dc;
     if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE || myBoard[nr][nc] !== 0) {
@@ -138,7 +145,6 @@ function showPreview(headR, headC) {
     }
   }
 
-  // Desenăm preview-ul
   for (let [dr, dc] of parts) {
     let nr = headR + dr, nc = headC + dc;
     if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
@@ -232,16 +238,15 @@ socket.on('turnChanged', ({ turn }) => {
   document.getElementById('status-text').innerText = isMyTurn ? 'Rândul TĂU să ataci!' : `Rândul lui ${oppName} să atace...`;
 });
 
-// Aici gestionăm atacul și reveal-ul complet la doborâre
 socket.on('attackResult', ({ row, col, result, revealedPlane }) => {
   const targetCell = document.querySelector(`#enemy-board .cell[data-r='${row}'][data-c='${col}']`);
   targetCell.classList.add(result);
   targetCell.innerText = result === 'kill' ? 'X' : (result === 'hit' ? '●' : '—');
 
-  // Dacă a fost distrus capul (kill), dezvăluim tot avionul pe radarul inamic!
+  // Daca a fost doborat capul, dezvaluim intregul avion pe radarul inamic
   if (result === 'kill' && revealedPlane) {
     revealedPlane.forEach(([pr, pc]) => {
-      if (pr === row && pc === col) return; // Capul are deja clasa kill ('X')
+      if (pr === row && pc === col) return;
       const bodyCell = document.querySelector(`#enemy-board .cell[data-r='${pr}'][data-c='${pc}']`);
       if (bodyCell) {
         bodyCell.classList.remove('miss');
