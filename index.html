@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avioane Online</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+  <!-- ECRANUL PRINCIPAL CONFORM POZEI -->
+  <div id="welcome-screen">
+    <div class="brand-header">
+      <h1 class="main-title">AVIOANE</h1>
+      <svg class="plane-icon" viewBox="0 0 24 24" fill="none" stroke="#253858" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </div>
+    
+    <p class="author-subtitle">IG: <a href="https://instagram.com/diminesq" target="_blank" rel="noopener noreferrer">DIMINESQ</a></p>
+
+    <div class="login-form">
+      <div class="input-group">
+        <label for="usernameInput">USERNAME:</label>
+        <input type="text" id="usernameInput" placeholder="Introduceți numele dumneavoastră" maxlength="15" autocomplete="off">
+      </div>
+
+      <div class="input-group">
+        <label for="roomIdInput">CODE:</label>
+        <input type="text" id="roomIdInput" placeholder="Introduceți codul jocului" maxlength="15" autocomplete="off">
+      </div>
+
+      <button id="playBtn" onclick="handlePlay()">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="#253858" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+        <span>PLAY</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- BARA DE STATUS -->
+  <div id="status-bar" class="hidden">
+    <span id="status-text">Așază-ți cele 3 avioane pe tabla din stânga...</span>
+    <div id="controls">
+      <button id="rotateBtn" onclick="rotatePlane()">Rotește Avionul (Direcție: <span id="dir-name">SUS</span>)</button>
+      <button id="readyBtn" onclick="confirmReady()" disabled>Gata de Luptă (0/3)</button>
+    </div>
+  </div>
+
+  <!-- ECRANUL ÎMPĂRȚIT ÎN DOUĂ: BAZA TA ȘI RADARUL INAMIC -->
+  <div id="game-container" class="hidden">
+    <div class="board-wrapper">
+      <h2>Baza Ta (<span id="boardPlayerName">Tu</span>)</h2>
+      <div id="my-board" class="grid"></div>
+    </div>
+
+    <div class="board-wrapper">
+      <h2>Radar Inamic (Atacă aici)</h2>
+      <div id="enemy-board" class="grid"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
