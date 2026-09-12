@@ -9,7 +9,7 @@
 </head>
 <body>
 
-  <!-- ECRANUL PRINCIPAL CONFORM POZEI -->
+  <!-- ECRAN PRINCIPAL -->
   <div id="welcome-screen">
     <div class="brand-header">
       <h1 class="main-title">AVIOANE</h1>
@@ -29,7 +29,10 @@
 
       <div class="input-group">
         <label for="roomIdInput">CODE:</label>
-        <input type="text" id="roomIdInput" placeholder="Introduceți codul jocului" maxlength="15" autocomplete="off">
+        <div class="code-row">
+          <input type="text" id="roomIdInput" placeholder="Introduceți sau generați cod" maxlength="15" autocomplete="off">
+          <button type="button" id="inviteBtn" onclick="generateAndCopyInvite()" title="Generează cod și copiază link-ul">Invite 🔗</button>
+        </div>
       </div>
 
       <button id="playBtn" onclick="handlePlay()">
@@ -42,16 +45,16 @@
     </div>
   </div>
 
-  <!-- BARA DE STATUS -->
+  <!-- STATUS SI CONTROALE -->
   <div id="status-bar" class="hidden">
-    <span id="status-text">Așază-ți cele 3 avioane pe tabla din stânga...</span>
+    <span id="status-text">Așază-ți cele 3 avioane pe tabla din stânga... (Apasă tasta <b>R</b> pentru rotire)</span>
     <div id="controls">
-      <button id="rotateBtn" onclick="rotatePlane()">Rotește Avionul (Direcție: <span id="dir-name">SUS</span>)</button>
+      <button id="rotateBtn" onclick="rotatePlane()">Rotește Avionul [R] (<span id="dir-name">SUS</span>)</button>
       <button id="readyBtn" onclick="confirmReady()" disabled>Gata de Luptă (0/3)</button>
     </div>
   </div>
 
-  <!-- ECRANUL ÎMPĂRȚIT ÎN DOUĂ: BAZA TA ȘI RADARUL INAMIC -->
+  <!-- ECRANELE DE JOC -->
   <div id="game-container" class="hidden">
     <div class="board-wrapper">
       <h2>Baza Ta (<span id="boardPlayerName">Tu</span>)</h2>
@@ -59,7 +62,7 @@
     </div>
 
     <div class="board-wrapper">
-      <h2>Radar Inamic (Atacă aici)</h2>
+      <h2>Radar Inamic (<span id="boardOpponentName">Așteptare adversar...</span>)</h2>
       <div id="enemy-board" class="grid"></div>
     </div>
   </div>
