@@ -219,6 +219,56 @@ body {
   opacity: 0.7;
 }
 
+/* BANNER FINAL DE JOC */
+#game-over-banner {
+  background: #ffffff;
+  padding: 20px 30px;
+  margin: 15px auto 25px auto;
+  max-width: 820px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+#game-over-title {
+  font-size: 26px;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+}
+
+#game-over-banner.won #game-over-title {
+  color: #16a34a; /* Verde */
+}
+
+#game-over-banner.lost #game-over-title {
+  color: #dc2626; /* Rosu */
+}
+
+#game-over-desc {
+  margin: 0 0 16px 0;
+  color: #64748b;
+  font-size: 15px;
+}
+
+#playAgainBtn {
+  padding: 12px 28px;
+  font-size: 16px;
+  font-family: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: #0284c7;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+#playAgainBtn:hover {
+  background: #0369a1;
+  transform: translateY(-2px);
+}
+
 #game-container {
   display: flex;
   justify-content: center;
@@ -290,4 +340,14 @@ body {
   background-color: #ea580c !important; 
   color: #fff; 
   font-weight: bold; 
+}
+
+/* Stil pentru avioanele inamice dezvăluite la final de meci */
+.cell.end-revealed-head {
+  background-color: rgba(239, 68, 68, 0.5) !important;
+  outline: 2px dashed #dc2626;
+}
+.cell.end-revealed-body {
+  background-color: rgba(59, 130, 246, 0.5) !important;
+  outline: 2px dashed #2563eb;
 }
