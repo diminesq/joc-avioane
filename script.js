@@ -7,12 +7,12 @@ let myBoard = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
 let myPlanesList = [];
 let planesPlaced = 0;
 const MAX_PLANES = 3;
-let currentDirection = 0; // 0: SUS, 1: DREAPTA, 2: JOS, 3: STÂNGA
+let currentDirection = 0;
 const directions = ['SUS', 'DREAPTA', 'JOS', 'STÂNGA'];
 let isMyTurn = false;
 let currentHoveredCell = null;
+let gameEnded = false;
 
-// Auto-completare camera din link (?room=...)
 window.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const roomFromUrl = urlParams.get('room');
@@ -21,17 +21,12 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ASCULTĂM TASTA "R" GLOBAL
+// Tasta R pentru rotire
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'r' || e.key === 'R') {
-    // Daca utilizatorul scrie intr-un camp de text (username/cod), lasam litera sa se scrie
+  if ((e.key === 'r' || e.key === 'R') && planesPlaced < MAX_PLANES) {
     if (e.target.tagName === 'INPUT') return;
-
-    // Rotim avionul doar daca suntem in faza de plasare
-    if (planesPlaced < MAX_PLANES) {
-      e.preventDefault();
-      rotatePlane();
-    }
+    e.preventDefault();
+    rotatePlane();
   }
 });
 
@@ -57,10 +52,10 @@ function generateAndCopyInvite() {
 }
 
 const planeTemplates = {
-  0: [ [0,0], [1,-2],[1,-1],[1,0],[1,1],[1,2], [2,0], [3,-1],[3,0],[3,1] ], // SUS
-  1: [ [0,0], [-2,-1],[-1,-1],[0,-1],[1,-1],[2,-1], [0,-2], [-1,-3],[0,-3],[1,-3] ], // DREAPTA
-  2: [ [0,0], [-1,-2],[-1,-1],[-1,0],[-1,1],[-1,2], [-2,0], [-3,-1],[-3,0],[-3,1] ], // JOS
-  3: [ [0,0], [-2,1],[-1,1],[0,1],[1,1],[2,1], [0,2], [-1,3],[0,3],[1,3] ]   // STÂNGA
+  0: [ [0,0], [1,-2],[1,-1],[1,0],[1,1],[1,2], [2,0], [3,-1],[3,0],[3,1] ],
+  1: [ [0,0], [-2,-1],[-1,-1],[0,-1],[1,-1],[2,-1], [0,-2], [-1,-3],[0,-3],[1,-3] ],
+  2: [ [0,0], [-1,-2],[-1,-1],[-1,0],[-1,1],[-1,2], [-2,0], [-3,-1],[-3,0],[-3,1] ],
+  3: [ [0,0], [-2,1],[-1,1],[0,1],[1,1],[2,1], [0,2], [-1,3],[0,3],[1,3] ]
 };
 
 function handlePlay() {
@@ -98,7 +93,6 @@ function createGrids() {
 
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
-      // Grila din stanga (proprie)
       const cell = document.createElement('div');
       cell.classList.add('cell');
       cell.dataset.r = r;
@@ -111,7 +105,6 @@ function createGrids() {
       cell.onmouseleave = () => clearPreview();
       myBoardEl.appendChild(cell);
 
-      // Grila din dreapta (inamic)
       const eCell = document.createElement('div');
       eCell.classList.add('cell');
       eCell.dataset.r = r;
@@ -130,11 +123,8 @@ function createGrids() {
 function rotatePlane() {
   currentDirection = (currentDirection + 1) % 4;
   const dirEl = document.getElementById('dir-name');
-  if (dirEl) {
-    dirEl.innerText = directions[currentDirection];
-  }
+  if (dirEl) dirEl.innerText = directions[currentDirection];
 
-  // Daca mouse-ul este deja deasupra unei casute, re-desenam preview-ul instant in noua pozitie
   if (currentHoveredCell) {
     showPreview(currentHoveredCell.r, currentHoveredCell.c);
   }
@@ -153,7 +143,6 @@ function showPreview(headR, headC) {
   const parts = planeTemplates[currentDirection];
   let isValid = true;
 
-  // Verificam spatiul si coliziunile
   for (let [dr, dc] of parts) {
     let nr = headR + dr, nc = headC + dc;
     if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE || myBoard[nr][nc] !== 0) {
@@ -162,7 +151,6 @@ function showPreview(headR, headC) {
     }
   }
 
-  // Aplicam clasele vizuale
   for (let [dr, dc] of parts) {
     let nr = headR + dr, nc = headC + dc;
     if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
@@ -225,7 +213,7 @@ function confirmReady() {
 }
 
 function attackEnemy(r, c) {
-  if (!isMyTurn) return;
+  if (!isMyTurn || gameEnded) return;
   const cell = document.querySelector(`#enemy-board .cell[data-r='${r}'][data-c='${c}']`);
   if (cell.classList.contains('miss') || cell.classList.contains('hit') || cell.classList.contains('kill') || cell.classList.contains('revealed-body')) {
     return;
@@ -234,16 +222,28 @@ function attackEnemy(r, c) {
   socket.emit('attack', { roomId: currentRoom, row: r, col: c });
 }
 
+// Resetare și Play Again cu același cod
+function playAgain() {
+  // Păstrăm codul camerei și numele în URL pentru reîncărcare directă
+  const reloadUrl = `${window.location.origin}/?room=${encodeURIComponent(currentRoom)}`;
+  sessionStorage.setItem('savedUsername', playerName);
+  window.location.href = reloadUrl;
+}
+
+// Verifică dacă există nume salvat anterior
+window.addEventListener('DOMContentLoaded', () => {
+  const savedName = sessionStorage.getItem('savedUsername');
+  if (savedName) {
+    document.getElementById('usernameInput').value = savedName;
+  }
+});
+
 socket.on('joined', () => {
   document.getElementById('welcome-screen').classList.add('hidden');
   document.getElementById('status-bar').classList.remove('hidden');
   document.getElementById('game-container').classList.remove('hidden');
 
-  // Scoatem focusul de pe orice buton anterior pentru ca tasta R sa functioneze imediat
-  if (document.activeElement) {
-    document.activeElement.blur();
-  }
-
+  if (document.activeElement) document.activeElement.blur();
   createGrids();
 });
 
@@ -270,7 +270,6 @@ socket.on('attackResult', ({ row, col, result, revealedPlane }) => {
   targetCell.classList.add(result);
   targetCell.innerText = result === 'kill' ? 'X' : (result === 'hit' ? '●' : '—');
 
-  // Daca s-a nimerit capul, dezvaluim restul avionului automat
   if (result === 'kill' && revealedPlane) {
     revealedPlane.forEach(([pr, pc]) => {
       if (pr === row && pc === col) return;
@@ -290,9 +289,41 @@ socket.on('defenseResult', ({ row, col, result }) => {
   cell.innerText = result === 'kill' ? 'X' : (result === 'hit' ? '●' : '—');
 });
 
-socket.on('gameOver', ({ won }) => {
-  alert(won ? 'VICTORIE! Ai doborât toate avioanele inamice!' : 'ÎNFRÂNGERE! Flota ta aeriană a fost distrusă!');
-  location.reload();
+// SFÂRȘIT DE JOC: afișare banner și reveal complet la radar
+socket.on('gameOver', ({ won, opponentBoard }) => {
+  gameEnded = true;
+  isMyTurn = false;
+
+  // Ascundem bara de status și afișăm bannerul
+  document.getElementById('status-bar').classList.add('hidden');
+  const banner = document.getElementById('game-over-banner');
+  const title = document.getElementById('game-over-title');
+
+  banner.classList.remove('hidden', 'won', 'lost');
+  if (won) {
+    banner.classList.add('won');
+    title.innerText = 'Felicitări, ai câștigat! 🎉';
+  } else {
+    banner.classList.add('lost');
+    title.innerText = 'Of, ai pierdut! 💥';
+  }
+
+  // REVEAL la toată tabla adversarului pe radarul inamic
+  if (opponentBoard) {
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        const cell = document.querySelector(`#enemy-board .cell[data-r='${r}'][data-c='${c}']`);
+        // Dacă nu a fost deja lovită
+        if (!cell.classList.contains('kill') && !cell.classList.contains('hit') && !cell.classList.contains('revealed-body')) {
+          if (opponentBoard[r][c] === 'head') {
+            cell.classList.add('end-revealed-head');
+          } else if (opponentBoard[r][c] === 'body') {
+            cell.classList.add('end-revealed-body');
+          }
+        }
+      }
+    }
+  }
 });
 
 socket.on('opponentLeft', () => {
