@@ -59,7 +59,6 @@ io.on('connection', (socket) => {
       const p1 = players[0];
       const p2 = players[1];
 
-      // Trimitem fiecarui jucator numele celuilalt
       io.to(p1.id).emit('gameStart', { turn: room.turn, opponentName: p2.name });
       io.to(p2.id).emit('gameStart', { turn: room.turn, opponentName: p1.name });
     }
@@ -79,7 +78,6 @@ io.on('connection', (socket) => {
     if (targetCell === 'head') {
       result = 'kill';
       opponent.headsRemaining--;
-      // Cautam intregul avion caruia ii apartine capul
       const hitPlane = opponent.planesList.find(p => p.head[0] === row && p.head[1] === col);
       if (hitPlane) {
         revealedPlane = hitPlane.cells;
@@ -91,9 +89,20 @@ io.on('connection', (socket) => {
     socket.emit('attackResult', { row, col, result, revealedPlane });
     io.to(opponentId).emit('defenseResult', { row, col, result });
 
+    // Când s-au doborât toate capetele
     if (opponent.headsRemaining <= 0) {
-      socket.emit('gameOver', { won: true });
-      io.to(opponentId).emit('gameOver', { won: false });
+      const currentPlayer = room.players[socket.id];
+
+      // Trimitem ambilor jucători rezultatul final și tabla adversarului pentru reveal complet
+      socket.emit('gameOver', { 
+        won: true, 
+        opponentBoard: opponent.board 
+      });
+      io.to(opponentId).emit('gameOver', { 
+        won: false, 
+        opponentBoard: currentPlayer.board 
+      });
+
       delete rooms[roomId];
     } else {
       room.turn = opponentId;
